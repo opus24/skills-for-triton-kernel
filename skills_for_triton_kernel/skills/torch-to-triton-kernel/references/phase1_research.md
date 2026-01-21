@@ -49,6 +49,20 @@
   - 순차 접근 vs 랜덤 접근
   - 메모리 지역성 특성
   - 병렬화 가능성
+  
+- **최적화 기법 A, B** (5단계에서 선정한 값)
+  - 최적화 기법 A: {기법명}
+  - 최적화 기법 B: {기법명}
+
+### 5. 최적화 기법 A, B 선정
+- **입력**: Phase 1에서 확정한 operation 이름 (정규화된 형태, 예: `softmax`, `layernorm`)
+- **참고**: `references/optimization_techniques.md`의 "Op별 추천 최적화 기법 (A, B)" 표
+- **규칙**:
+  - 표에 있으면 해당 (A, B) 사용
+  - 없으면 기본 (Tiling, Memory Coalescing). 유사 op(예: silu→gelu, bmm→matmul)가 있으면 그걸 참고해 A, B 조정 가능
+- **기록**: `logs/{op_name}_log.md` Phase 1 섹션에 다음을 추가
+  - `최적화 기법 A: {기법명}`
+  - `최적화 기법 B: {기법명}`
 
 ## 출력
 - `logs/{op_name}_log.md`에 Phase 1 섹션 작성
@@ -62,4 +76,5 @@
 - [ ] 입력/출력 shape 및 dtype 명확히 정리됨
 - [ ] 계산 복잡도 분석 완료
 - [ ] 메모리 접근 패턴 분석 완료
+- [ ] 최적화 기법 A, B 선정 및 로그 기록
 - [ ] 로그 파일에 Phase 1 섹션 작성 완료

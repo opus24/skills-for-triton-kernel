@@ -10,7 +10,7 @@
 각 커널에 대해 다음 프로세스를 수행:
 
 ```python
-for each kernel in [v1_baseline, v2_tiling, v3_coalesced, v4_optimized]:
+for each kernel in [v1_baseline, v2_opt_a, v3_opt_b, v4_opt_ab]:
     max_retries = 3
     retry_count = 0
     
@@ -84,7 +84,7 @@ TENSOR_SIZES = {
 }
 NUM_RUNS = 10
 
-for kernel in [v1_baseline, v2_tiling, v3_coalesced, v4_optimized]:
+for kernel in [v1_baseline, v2_opt_a, v3_opt_b, v4_opt_ab]:
     # Correctness check 통과한 커널만 벤치마크
     if not kernel.passed_correctness:
         continue

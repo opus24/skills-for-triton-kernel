@@ -1,46 +1,41 @@
 # Phase 2: 4가지 Triton Kernel 작성
 
 ## 목표
-2가지 최적화 기법의 조합으로 총 4개의 커널 변형 생성
+2가지 최적화 기법(A, B)을 **Phase 1에서 op별로 선정**하고, 그 조합으로 4개 커널 변형 생성
 
 ## 커널 변형
+
+**Phase 1에서 선정한 A, B**를 각 커널에 맞게 적용한다.
 
 ### v1_baseline.py
 - **최적화**: 없음
 - **특징**: torch operation을 직접적으로 1:1 변환
 - **용도**: 성능 비교의 기준선
 
-### v2_tiling.py
-- **최적화**: Tiling만 적용
-- **특징**: 
-  - BLOCK_SIZE 파라미터로 타일링 구현
-  - 데이터를 타일 단위로 분할하여 처리
-  - 캐시 효율성 향상
+### v2_opt_a.py
+- **최적화**: Phase 1에서 선정한 **최적화 A만** 적용
+- **특징**: A가 Tiling, Tensor Core 등이면 BLOCK_SIZE 활용; A가 Online, Reduction 등이면 해당 알고리즘 구현
 
-### v3_coalesced.py
-- **최적화**: Memory Coalescing만 적용
-- **특징**:
-  - 연속 메모리 접근 패턴 최적화
-  - 벡터화된 로드/스토어 활용
-  - 메모리 대역폭 최대화
+### v3_opt_b.py
+- **최적화**: Phase 1에서 선정한 **최적화 B만** 적용
+- **특징**: B에 따라 메모리 접근(Coalescing), 리덕션, fusion 등 적용
 
-### v4_optimized.py
-- **최적화**: Tiling + Memory Coalescing 조합
-- **특징**: 두 기법을 모두 적용하여 최대 성능 추구
+### v4_opt_ab.py
+- **최적화**: **A + B** 둘 다 적용
+- **특징**: A·B 각각의 요구사항을 모두 만족
 
 ## 작성 규칙
 
 ### 1. 파일 위치
 모든 커널 파일은 다음 위치에 생성:
 ```
-kernels/{op_name}/v{1-4}_{variant_name}.py
+kernels/{op_name}/v1_baseline.py
+kernels/{op_name}/v2_opt_a.py
+kernels/{op_name}/v3_opt_b.py
+kernels/{op_name}/v4_opt_ab.py
 ```
 
-예시:
-- `kernels/softmax/v1_baseline.py`
-- `kernels/softmax/v2_tiling.py`
-- `kernels/softmax/v3_coalesced.py`
-- `kernels/softmax/v4_optimized.py`
+예시: `kernels/softmax/v2_opt_a.py` (softmax의 A=Online Algorithm이면, 이 파일에는 Online만 적용)
 
 ### 2. 커널 구조
 
@@ -81,14 +76,16 @@ def triton_op(input_tensor, ...):
 각 커널은 다음을 포함해야 합니다:
 
 - **`@triton.jit` 데코레이터**: 커널 함수에 필수
-- **적절한 BLOCK_SIZE 설정**: v2, v4에 필수
-- **메모리 접근 최적화**: v3, v4에 필수
+- **Phase 1에서 선정한 A, B**를 각 커널에 맞게 적용:
+  - **v2_opt_a**: A가 Tiling, Tensor Core 등이면 BLOCK_SIZE 사용; A가 Online, Reduction 등이면 해당 기법의 요구사항 적용
+  - **v3_opt_b**: B에 따라 메모리 접근(Coalescing), 리덕션, fusion 등 적용
+  - **v4_opt_ab**: A·B 각각의 요구사항을 모두 만족
 - **torch와 동일한 입력/출력 인터페이스**: 모든 커널에 필수
 - **에러 처리**: 입력 검증 및 예외 처리
 
 ### 4. 튜닝 파라미터
 
-커널 성능 최적화를 위한 주요 파라미터:
+커널 성능 최적화를 위한 주요 파라미터. **A 또는 B가 Tiling, Tensor Core 등 block 사용 기법이면 BLOCK_SIZE 등이 해당 커널에 필수**이다.
 
 - **`BLOCK_SIZE`**: 16, 32, 64, 128 중 선택
   - 작은 값: 더 많은 병렬성, 더 많은 메모리 접근
@@ -117,9 +114,9 @@ def triton_op(input_tensor, ...):
 
 ## 체크리스트
 - [ ] v1_baseline.py 생성 완료
-- [ ] v2_tiling.py 생성 완료 (Tiling 적용)
-- [ ] v3_coalesced.py 생성 완료 (Memory Coalescing 적용)
-- [ ] v4_optimized.py 생성 완료 (두 기법 조합)
+- [ ] v2_opt_a.py 생성 완료 (최적화 A 적용)
+- [ ] v3_opt_b.py 생성 완료 (최적화 B 적용)
+- [ ] v4_opt_ab.py 생성 완료 (A+B 적용)
 - [ ] 모든 커널이 torch와 동일한 인터페이스 제공
 - [ ] 모든 커널이 독립적으로 실행 가능
-- [ ] 적절한 BLOCK_SIZE 및 튜닝 파라미터 설정
+- [ ] 적절한 BLOCK_SIZE 및 튜닝 파라미터 설정 (A 또는 B가 해당 시)

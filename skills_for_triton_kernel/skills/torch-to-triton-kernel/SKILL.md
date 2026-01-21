@@ -17,11 +17,9 @@ description: Converts PyTorch operations to optimized Triton kernels through a 4
 
 ## 최적화 기법
 
-2가지 최적화 기법을 조합하여 4개의 커널 변형을 생성합니다:
-- **Tiling**: 데이터를 BLOCK_SIZE 단위 타일로 분할하여 캐시 효율성 극대화
-- **Memory Coalescing**: 연속 메모리 접근 패턴으로 메모리 대역폭 활용률 극대화
+**입력 op에 자주 쓰이는 기법 2개(A, B)를 Phase 1에서 선정**한다. `references/optimization_techniques.md`의 Op별 추천 표를 사용하며, 미등록 op는 (Tiling, Memory Coalescing) 기본 또는 유사 op 참고. 4개 커널: **v1_baseline, v2_opt_a, v3_opt_b, v4_opt_ab**.
 
-**See**: `references/optimization_techniques.md` for detailed explanation of optimization techniques.
+**See**: `references/optimization_techniques.md` for Op별 (A,B) 표 및 기법 상세.
 
 ## 전체 워크플로우 (⚠️ MANDATORY)
 
@@ -30,7 +28,7 @@ description: Converts PyTorch operations to optimized Triton kernels through a 4
   ↓
 각 op에 대해 순차적으로:
   Phase 1: 자료 조사 및 분석
-  Phase 2: 4개 커널 생성 (v1_baseline, v2_tiling, v3_coalesced, v4_optimized)
+  Phase 2: Phase 1에서 정한 A·B로 4개 커널 생성 (v1_baseline, v2_opt_a, v3_opt_b, v4_opt_ab)
   Phase 3: Correctness Check + 재생성 (필요시) → 벤치마크 실행
   Phase 4: 최적 커널 선정 및 로그 작성
   ↓
@@ -45,7 +43,7 @@ description: Converts PyTorch operations to optimized Triton kernels through a 4
 
 ## Phase 2: 4가지 Triton Kernel 작성
 
-2가지 최적화 기법의 조합으로 총 4개의 커널 변형 생성 (v1_baseline, v2_tiling, v3_coalesced, v4_optimized). 각 커널은 `kernels/{op_name}/` 디렉토리에 생성되며 독립적으로 실행 가능해야 함.
+Phase 1에서 정한 A·B로 4개 커널(baseline, opt_a, opt_b, opt_ab) 생성. 각 커널은 `kernels/{op_name}/` 디렉토리에 생성되며 독립적으로 실행 가능해야 함.
 
 **See**: `references/phase2_kernel_generation.md` for kernel structure, rules, and tuning parameters.
 

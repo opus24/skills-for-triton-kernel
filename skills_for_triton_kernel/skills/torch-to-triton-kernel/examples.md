@@ -9,21 +9,21 @@ kernels/
 ├── add/
 │   ├── __init__.py
 │   ├── v1_baseline.py
-│   ├── v2_tiling.py
-│   ├── v3_coalesced.py
-│   └── v4_optimized.py
+│   ├── v2_opt_a.py
+│   ├── v3_opt_b.py
+│   └── v4_opt_ab.py
 ├── softmax/
 │   ├── __init__.py
 │   ├── v1_baseline.py
-│   ├── v2_tiling.py
-│   ├── v3_coalesced.py
-│   └── v4_optimized.py
+│   ├── v2_opt_a.py
+│   ├── v3_opt_b.py
+│   └── v4_opt_ab.py
 └── mha/
     ├── __init__.py
     ├── v1_baseline.py
-    ├── v2_tiling.py
-    ├── v3_coalesced.py
-    └── v4_optimized.py
+    ├── v2_opt_a.py
+    ├── v3_opt_b.py
+    └── v4_opt_ab.py
 ```
 
 ## add: v1_baseline 예시
@@ -70,8 +70,8 @@ def triton_add(x: torch.Tensor, y: torch.Tensor, alpha: float = 1.0) -> torch.Te
 
 ## softmax, mha
 
-- **softmax**: `kernels/softmax/v1_baseline.py` ~ `v4_optimized.py` — dim 축 기준 log-sum-exp, Tiling/Coalescing 조합.
-- **mha**: `kernels/mha/v1_baseline.py` ~ `v4_optimized.py` — scaled dot-product attention, Q/K/V 포인터와 스케일 인자.
+- **softmax**: `kernels/softmax/v1_baseline.py` ~ `v4_opt_ab.py` — dim 축 기준 log-sum-exp, Phase 1에서 선정한 A·B 조합 (예: Online Algorithm + Tiling).
+- **mha**: `kernels/mha/v1_baseline.py` ~ `v4_opt_ab.py` — scaled dot-product attention, Q/K/V 포인터와 스케일 인자. Phase 1에서 선정한 A·B 적용.
 
 각 op의 `triton_*` 래퍼는 torch 동일 인터페이스(입력/출력 shape, dtype)를 유지합니다.
 
@@ -87,12 +87,14 @@ def triton_add(x: torch.Tensor, y: torch.Tensor, alpha: float = 1.0) -> torch.Te
 - 수학적 정의: output = input + alpha * other
 - 입력/출력: input, other (동일 shape), alpha=1.0
 - 계산 복잡도: O(n), 메모리 바운드
+- 최적화 기법 A: Tiling
+- 최적화 기법 B: Memory Coalescing
 
 ## Phase 2: 커널 작성
 ### v1_baseline — BLOCK_SIZE: 1024, 최적화 없음
-### v2_tiling — Tiling, Autotune
-### v3_coalesced — Memory Coalescing
-### v4_optimized — Tiling + Coalescing + Autotune
+### v2_opt_a — 최적화 A: Tiling
+### v3_opt_b — 최적화 B: Memory Coalescing
+### v4_opt_ab — A+B
 
 ## Phase 3: Correctness Check
 - v1~v4: ✅ 통과 (재시도 0~1회)
@@ -100,15 +102,15 @@ def triton_add(x: torch.Tensor, y: torch.Tensor, alpha: float = 1.0) -> torch.Te
 ## Phase 3: 벤치마크 결과
 | Kernel | Small | Medium | Large | Final | Speedup |
 | v1_baseline | ... | ... | ... | ... | ...x |
-| v2_tiling | ... | ... | ... | ... | ...x |
-| v3_coalesced | ... | ... | ... | ... | ...x |
-| v4_optimized | ... | ... | ... | ... | ...x |
+| v2_opt_a | ... | ... | ... | ... | ...x |
+| v3_opt_b | ... | ... | ... | ... | ...x |
+| v4_opt_ab | ... | ... | ... | ... | ...x |
 | torch | ... | ... | ... | ... | 1.0x |
 
 ## Phase 4: 최적 커널
-- 선택된 커널: v4_optimized
+- 선택된 커널: v4_opt_ab
 - Speedup: ...x
-- 분석: Tiling+Coalescing 조합이 대부분 크기에서 우수
+- 분석: (선정된 A+B) 조합이 대부분 크기에서 우수
 ```
 
 로그 템플릿은 `assets/log_template.md` 형식을 참고하여 Phase 1~4와 체크리스트를 채웁니다.

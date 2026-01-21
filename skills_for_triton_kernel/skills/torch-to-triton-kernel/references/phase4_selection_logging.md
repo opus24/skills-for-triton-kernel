@@ -13,9 +13,9 @@
 | Kernel | Small (ms) | Medium (ms) | Large (ms) | Final (ms) | Speedup vs Torch |
 |--------|------------|-------------|------------|------------|------------------|
 | v1_baseline | ... | ... | ... | ... | ... |
-| v2_tiling | ... | ... | ... | ... | ... |
-| v3_coalesced | ... | ... | ... | ... | ... |
-| v4_optimized | ... | ... | ... | ... | ... |
+| v2_opt_a | ... | ... | ... | ... | ... |
+| v3_opt_b | ... | ... | ... | ... | ... |
+| v4_opt_ab | ... | ... | ... | ... | ... |
 | torch (baseline) | ... | ... | ... | ... | 1.0x |
 ```
 
@@ -78,42 +78,44 @@
 - 수학적 정의: ...
 - 입력/출력: ...
 - 계산 복잡도: ...
+- 최적화 기법 A: ...
+- 최적화 기법 B: ...
 
 ## Phase 2: 커널 작성
 ### v1_baseline
 - 특징: ...
 - BLOCK_SIZE: N/A
 
-### v2_tiling
+### v2_opt_a
 - 특징: ...
-- BLOCK_SIZE: 64
+- 최적화 기법 A: {Phase 1에서 선정한 A 기법명}
+- BLOCK_SIZE: (A가 Tiling 등이면 64 등, 해당 없으면 N/A)
 
-### v3_coalesced
+### v3_opt_b
 - 특징: ...
-- 최적화 기법: Memory Coalescing
+- 최적화 기법 B: {Phase 1에서 선정한 B 기법명}
 
-### v4_optimized
+### v4_opt_ab
 - 특징: ...
-- 최적화 기법: Tiling + Memory Coalescing
-- BLOCK_SIZE: 64
+- 최적화 기법: A + B
 
 ## Phase 3: Correctness Check
 - v1_baseline: ✅ 통과 (재시도 0회)
-- v2_tiling: ✅ 통과 (재시도 1회)
-- v3_coalesced: ✅ 통과 (재시도 0회)
-- v4_optimized: ✅ 통과 (재시도 0회)
+- v2_opt_a: ✅ 통과 (재시도 1회)
+- v3_opt_b: ✅ 통과 (재시도 0회)
+- v4_opt_ab: ✅ 통과 (재시도 0회)
 
 ## Phase 3: 벤치마크 결과
 | Kernel | Small | Medium | Large | Final | Speedup |
 |--------|-------|--------|-------|-------|---------|
 | v1_baseline | ... | ... | ... | ... | ...x |
-| v2_tiling | ... | ... | ... | ... | ...x |
-| v3_coalesced | ... | ... | ... | ... | ...x |
-| v4_optimized | ... | ... | ... | ... | ...x |
+| v2_opt_a | ... | ... | ... | ... | ...x |
+| v3_opt_b | ... | ... | ... | ... | ...x |
+| v4_opt_ab | ... | ... | ... | ... | ...x |
 | torch | ... | ... | ... | ... | 1.0x |
 
 ## Phase 4: 최적 커널
-- 선택된 커널: v4_optimized
+- 선택된 커널: v4_opt_ab
 - 최종 성능: ... ms
 - Speedup: ...x
 - 분석: ...
