@@ -10,6 +10,12 @@ uv run skills-for-triton-kernel
 
 인자 없이 실행하면 `~/.claude/skills/`에 `torch-to-triton-kernel` 스킬이 설치됩니다.
 
+cursor에서 설치하려면 사용하려는 디렉토리의 홈에 복사해주세요.
+
+```bash
+cp -r ~/.claude/skills/torch-to-triton-kernel .
+```
+
 ## 사용법
 
 ```bash
